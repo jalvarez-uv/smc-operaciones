@@ -1,0 +1,43 @@
+name: Compilar Ejecutable Windows (.exe)
+
+on:
+push:
+branches: [ "main" ]
+workflow_dispatch:
+
+jobs:
+build-windows:
+runs-on: windows-latest
+steps:
+- name: 1. Clonar repositorio
+uses: actions/checkout@v4
+
+  - name: 2. Configurar Python 3.11 en Windows
+    uses: actions/setup-python@v5
+    with:
+      python-version: '3.11'
+      cache: 'pip'
+
+  - name: 3. Instalar dependencias y PyInstaller
+    run: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+      pip install pyinstaller
+
+  - name: 4. Ejecutar pruebas automatizadas con pytest
+    run: |
+      pytest -v
+
+  - name: 5. Compilar ejecutable .exe con PyInstaller
+    run: |
+      pyinstaller --noconfirm --onedir --windowed --name "SMC_Operaciones" --collect-all customtkinter src/ui/app.py
+
+  - name: 6. Copiar carpeta docs y plantillas al paquete final
+    run: |
+      if (Test-Path docs) { Copy-Item -Path docs -Destination dist/SMC_Operaciones/docs -Recurse }
+
+  - name: 7. Subir ejecutable Windows listo para descargar
+    uses: actions/upload-artifact@v4
+    with:
+      name: SMC_Operaciones_Windows_Portable
+      path: dist/SMC_Operaciones/
