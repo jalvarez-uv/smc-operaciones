@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from datetime import date
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
@@ -72,8 +73,13 @@ class SMCOperacionesApp(ctk.CTk):
         self.db.init_db()
 
         self.title("Servicios Marítimos Carrere (SMC) — Operaciones, Proformas y OC")
-        self.geometry("1380x840")
-        self.minsize(1180, 720)
+        self.geometry("1240x680")
+        self.minsize(960, 560)
+        self.resizable(True, True)
+
+        self._is_fullscreen = False
+        self.bind("<F11>", self._toggle_fullscreen)
+        self.after(100, self._maximize_window)
 
         self._selected_op_id: Optional[int] = None
         self._proforma_ops_map: dict[int, Operacion] = {}
@@ -86,6 +92,24 @@ class SMCOperacionesApp(ctk.CTk):
         self._build_tabs()
         self._refresh_all_views()
 
+    def _maximize_window(self) -> None:
+        """Maximiza la ventana de forma compatible con Linux Mint y Windows."""
+        try:
+            if sys.platform.startswith("linux"):
+                self.attributes("-zoomed", True)
+            else:
+                self.state("zoomed")
+        except Exception:
+            pass
+
+    def _toggle_fullscreen(self, _event: object = None) -> None:
+        """Alterna pantalla completa con F11 o desde el botón del encabezado."""
+        self._is_fullscreen = not self._is_fullscreen
+        try:
+            self.attributes("-fullscreen", self._is_fullscreen)
+        except Exception:
+            pass
+
     def _configure_treeview_style(self) -> None:
         style = ttk.Style(self)
         style.theme_use("clam")
@@ -93,7 +117,7 @@ class SMCOperacionesApp(ctk.CTk):
             "Treeview",
             background="#FFFFFF",
             foreground="#111827",
-            rowheight=25,
+            rowheight=24,
             fieldbackground="#FFFFFF",
             font=("Segoe UI", 9),
         )
@@ -106,27 +130,37 @@ class SMCOperacionesApp(ctk.CTk):
         style.map("Treeview", background=[("selected", "#2563EB")], foreground=[("selected", "#FFFFFF")])
 
     def _build_header(self) -> None:
-        header = ctk.CTkFrame(self, fg_color="#1B365D", corner_radius=0, height=58)
+        header = ctk.CTkFrame(self, fg_color="#1B365D", corner_radius=0, height=50)
         header.pack(fill="x", side="top")
         header.pack_propagate(False)
 
         ctk.CTkLabel(
             header,
             text="SERVICIOS MARÍTIMOS CARRERE (SMC) — IQUIQUE",
-            font=ctk.CTkFont(size=18, weight="bold"),
+            font=ctk.CTkFont(size=16, weight="bold"),
             text_color="#FFFFFF",
-        ).pack(side="left", padx=20, pady=12)
+        ).pack(side="left", padx=16, pady=8)
+
+        ctk.CTkButton(
+            header,
+            text="Pantalla Completa (F11)",
+            width=155,
+            height=28,
+            fg_color="#334155",
+            hover_color="#475569",
+            command=self._toggle_fullscreen,
+        ).pack(side="right", padx=14, pady=8)
 
         ctk.CTkLabel(
             header,
             text="Control de Operaciones  |  Proformas de Servicio  |  Órdenes de Compra",
-            font=ctk.CTkFont(size=12),
+            font=ctk.CTkFont(size=11),
             text_color="#CBD5E1",
-        ).pack(side="right", padx=20, pady=12)
+        ).pack(side="right", padx=12, pady=8)
 
     def _build_tabs(self) -> None:
         self.tabview = ctk.CTkTabview(self, anchor="nw")
-        self.tabview.pack(fill="both", expand=True, padx=10, pady=(6, 10))
+        self.tabview.pack(fill="both", expand=True, padx=8, pady=(4, 8))
 
         self.tab_ops = self.tabview.add("1. Control de Operaciones")
         self.tab_proforma = self.tabview.add("2. Emitir Proforma de Servicios")
@@ -142,148 +176,141 @@ class SMCOperacionesApp(ctk.CTk):
     # PESTAÑA 1: CONTROL DE OPERACIONES
     # =========================================================================
     def _build_tab_operaciones(self) -> None:
-        # Barra de filtros
         filter_frame = ctk.CTkFrame(self.tab_ops)
-        filter_frame.pack(fill="x", padx=6, pady=(4, 6))
+        filter_frame.pack(fill="x", side="top", padx=4, pady=(2, 4))
 
-        ctk.CTkLabel(filter_frame, text="Desde:").grid(row=0, column=0, padx=4, pady=6)
-        self.flt_desde = ctk.CTkEntry(filter_frame, width=100, placeholder_text="YYYY-MM-DD")
-        self.flt_desde.grid(row=0, column=1, padx=4, pady=6)
+        ctk.CTkLabel(filter_frame, text="Desde:").grid(row=0, column=0, padx=3, pady=4)
+        self.flt_desde = ctk.CTkEntry(filter_frame, width=95, placeholder_text="YYYY-MM-DD")
+        self.flt_desde.grid(row=0, column=1, padx=3, pady=4)
 
-        ctk.CTkLabel(filter_frame, text="Hasta:").grid(row=0, column=2, padx=4, pady=6)
-        self.flt_hasta = ctk.CTkEntry(filter_frame, width=100, placeholder_text="YYYY-MM-DD")
-        self.flt_hasta.grid(row=0, column=3, padx=4, pady=6)
+        ctk.CTkLabel(filter_frame, text="Hasta:").grid(row=0, column=2, padx=3, pady=4)
+        self.flt_hasta = ctk.CTkEntry(filter_frame, width=95, placeholder_text="YYYY-MM-DD")
+        self.flt_hasta.grid(row=0, column=3, padx=3, pady=4)
 
-        ctk.CTkLabel(filter_frame, text="Nave:").grid(row=0, column=4, padx=4, pady=6)
-        self.flt_nave = ctk.CTkEntry(filter_frame, width=130, placeholder_text="Buscar nave...")
-        self.flt_nave.grid(row=0, column=5, padx=4, pady=6)
+        ctk.CTkLabel(filter_frame, text="Nave:").grid(row=0, column=4, padx=3, pady=4)
+        self.flt_nave = ctk.CTkEntry(filter_frame, width=120, placeholder_text="Buscar nave...")
+        self.flt_nave.grid(row=0, column=5, padx=3, pady=4)
 
-        ctk.CTkLabel(filter_frame, text="Cliente:").grid(row=0, column=6, padx=4, pady=6)
-        self.flt_cliente = ctk.CTkComboBox(filter_frame, width=120, values=["TODOS"])
+        ctk.CTkLabel(filter_frame, text="Cliente:").grid(row=0, column=6, padx=3, pady=4)
+        self.flt_cliente = ctk.CTkComboBox(filter_frame, width=115, values=["TODOS"])
         self.flt_cliente.set("TODOS")
-        self.flt_cliente.grid(row=0, column=7, padx=4, pady=6)
+        self.flt_cliente.grid(row=0, column=7, padx=3, pady=4)
 
-        ctk.CTkLabel(filter_frame, text="Lancha:").grid(row=0, column=8, padx=4, pady=6)
-        self.flt_lancha = ctk.CTkComboBox(filter_frame, width=130, values=["TODAS"])
+        ctk.CTkLabel(filter_frame, text="Lancha:").grid(row=0, column=8, padx=3, pady=4)
+        self.flt_lancha = ctk.CTkComboBox(filter_frame, width=125, values=["TODAS"])
         self.flt_lancha.set("TODAS")
-        self.flt_lancha.grid(row=0, column=9, padx=4, pady=6)
+        self.flt_lancha.grid(row=0, column=9, padx=3, pady=4)
 
-        ctk.CTkLabel(filter_frame, text="Estado:").grid(row=0, column=10, padx=4, pady=6)
-        self.flt_estado = ctk.CTkComboBox(filter_frame, width=110, values=["TODOS", *ESTADOS_OP])
+        ctk.CTkLabel(filter_frame, text="Estado:").grid(row=0, column=10, padx=3, pady=4)
+        self.flt_estado = ctk.CTkComboBox(filter_frame, width=105, values=["TODOS", *ESTADOS_OP])
         self.flt_estado.set("TODOS")
-        self.flt_estado.grid(row=0, column=11, padx=4, pady=6)
+        self.flt_estado.grid(row=0, column=11, padx=3, pady=4)
 
-        ctk.CTkButton(filter_frame, text="Filtrar", width=80, command=self._load_operations_table).grid(
-            row=0, column=12, padx=4, pady=6
+        ctk.CTkButton(filter_frame, text="Filtrar", width=75, command=self._load_operations_table).grid(
+            row=0, column=12, padx=3, pady=4
         )
         ctk.CTkButton(
             filter_frame,
             text="Limpiar",
-            width=75,
+            width=70,
             fg_color="#64748B",
             command=self._clear_filters,
-        ).grid(row=0, column=13, padx=4, pady=6)
+        ).grid(row=0, column=13, padx=3, pady=4)
 
-        # Formulario CRUD
         form_frame = ctk.CTkFrame(self.tab_ops)
-        form_frame.pack(fill="x", padx=6, pady=(0, 6))
+        form_frame.pack(fill="x", side="top", padx=4, pady=(0, 4))
 
-        # Fila 0 del formulario
-        self.op_fecha = self._labeled_entry(form_frame, "Fecha (YYYY-MM-DD):", 0, 0, width=115)
+        self.op_fecha = self._labeled_entry(form_frame, "Fecha:", 0, 0, width=100)
         self.op_fecha.insert(0, date.today().isoformat())
 
-        self.op_inicio = self._labeled_entry(form_frame, "Hrs Inicio:", 0, 2, width=90)
+        self.op_inicio = self._labeled_entry(form_frame, "Hrs Inicio:", 0, 2, width=80)
         self.op_inicio.insert(0, "08:00:00")
         self.op_inicio.bind("<FocusOut>", lambda _e: self._recalculate_form_values())
 
-        self.op_termino = self._labeled_entry(form_frame, "Hrs Término:", 0, 4, width=90)
+        self.op_termino = self._labeled_entry(form_frame, "Hrs Término:", 0, 4, width=80)
         self.op_termino.insert(0, "09:00:00")
         self.op_termino.bind("<FocusOut>", lambda _e: self._recalculate_form_values())
 
-        self.op_tt = self._labeled_entry(form_frame, "Total Time:", 0, 6, width=85)
+        self.op_tt = self._labeled_entry(form_frame, "Total Time:", 0, 6, width=80)
         self.op_tt.insert(0, "01:00:00")
 
-        self.op_nave = self._labeled_entry(form_frame, "Nave:", 0, 8, width=160)
+        self.op_nave = self._labeled_entry(form_frame, "Nave:", 0, 8, width=140)
 
-        ctk.CTkLabel(form_frame, text="Cliente:").grid(row=0, column=10, padx=4, pady=4, sticky="e")
+        ctk.CTkLabel(form_frame, text="Cliente:").grid(row=0, column=10, padx=3, pady=3, sticky="e")
         self.op_cliente = ctk.CTkComboBox(
             form_frame,
-            width=125,
+            width=115,
             values=["LBH"],
             command=lambda _v: self._autofill_tariff(),
         )
-        self.op_cliente.grid(row=0, column=11, padx=4, pady=4)
+        self.op_cliente.grid(row=0, column=11, padx=3, pady=3)
 
-        # Fila 1 del formulario
-        ctk.CTkLabel(form_frame, text="Servicio:").grid(row=1, column=0, padx=4, pady=4, sticky="e")
+        ctk.CTkLabel(form_frame, text="Servicio:").grid(row=1, column=0, padx=3, pady=3, sticky="e")
         self.op_servicio = ctk.CTkComboBox(
             form_frame,
-            width=165,
+            width=150,
             values=SERVICIOS_COMUNES,
             command=lambda _v: self._autofill_tariff(),
         )
-        self.op_servicio.grid(row=1, column=1, padx=4, pady=4)
+        self.op_servicio.grid(row=1, column=1, padx=3, pady=3)
 
-        ctk.CTkLabel(form_frame, text="Terminal:").grid(row=1, column=2, padx=4, pady=4, sticky="e")
-        self.op_terminal = ctk.CTkComboBox(form_frame, width=105, values=TERMINALES_IQQ)
+        ctk.CTkLabel(form_frame, text="Terminal:").grid(row=1, column=2, padx=3, pady=3, sticky="e")
+        self.op_terminal = ctk.CTkComboBox(form_frame, width=95, values=TERMINALES_IQQ)
         self.op_terminal.set("GIRA")
-        self.op_terminal.grid(row=1, column=3, padx=4, pady=4)
+        self.op_terminal.grid(row=1, column=3, padx=3, pady=3)
 
-        ctk.CTkLabel(form_frame, text="Lancha:").grid(row=1, column=4, padx=4, pady=4, sticky="e")
-        self.op_lancha = ctk.CTkComboBox(form_frame, width=135, values=["DOÑA RENATA", "BUCA LAUREL"])
+        ctk.CTkLabel(form_frame, text="Lancha:").grid(row=1, column=4, padx=3, pady=3, sticky="e")
+        self.op_lancha = ctk.CTkComboBox(form_frame, width=125, values=["DOÑA RENATA", "BUCA LAUREL"])
         self.op_lancha.set("DOÑA RENATA")
-        self.op_lancha.grid(row=1, column=5, padx=4, pady=4)
+        self.op_lancha.grid(row=1, column=5, padx=3, pady=3)
 
-        self.op_valor = self._labeled_entry(form_frame, "Valor USD:", 1, 6, width=85)
+        self.op_valor = self._labeled_entry(form_frame, "Valor USD:", 1, 6, width=80)
         self.op_valor.insert(0, "0.00")
         self.op_valor.bind("<KeyRelease>", lambda _e: self._recalculate_form_values())
 
-        self.op_extra = self._labeled_entry(form_frame, "Extra USD:", 1, 8, width=85)
+        self.op_extra = self._labeled_entry(form_frame, "Extra USD:", 1, 8, width=80)
         self.op_extra.insert(0, "0.00")
         self.op_extra.bind("<KeyRelease>", lambda _e: self._recalculate_form_values())
 
-        self.op_total = self._labeled_entry(form_frame, "Total USD:", 1, 10, width=90)
+        self.op_total = self._labeled_entry(form_frame, "Total USD:", 1, 10, width=85)
         self.op_total.insert(0, "0.00")
 
-        # Fila 2 del formulario (Trazabilidad y acciones)
-        ctk.CTkLabel(form_frame, text="Estado:").grid(row=2, column=0, padx=4, pady=4, sticky="e")
-        self.op_estado = ctk.CTkComboBox(form_frame, width=120, values=ESTADOS_OP)
+        ctk.CTkLabel(form_frame, text="Estado:").grid(row=2, column=0, padx=3, pady=3, sticky="e")
+        self.op_estado = ctk.CTkComboBox(form_frame, width=110, values=ESTADOS_OP)
         self.op_estado.set("PENDIENTE")
-        self.op_estado.grid(row=2, column=1, padx=4, pady=4)
+        self.op_estado.grid(row=2, column=1, padx=3, pady=3)
 
-        self.op_obs = self._labeled_entry(form_frame, "Observaciones:", 2, 2, width=170)
-        self.op_proforma = self._labeled_entry(form_frame, "Proforma SMC:", 2, 4, width=155)
-        self.op_oc_cte = self._labeled_entry(form_frame, "OC Cte:", 2, 6, width=100)
-        self.op_factura = self._labeled_entry(form_frame, "Factura SMC:", 2, 8, width=100)
-        self.op_lbh_ag = self._labeled_entry(form_frame, "LBH Agenc.:", 2, 10, width=100)
+        self.op_obs = self._labeled_entry(form_frame, "Observaciones:", 2, 2, width=140)
+        self.op_proforma = self._labeled_entry(form_frame, "Proforma SMC:", 2, 4, width=140)
+        self.op_oc_cte = self._labeled_entry(form_frame, "OC Cte:", 2, 6, width=90)
+        self.op_factura = self._labeled_entry(form_frame, "Factura SMC:", 2, 8, width=90)
+        self.op_lbh_ag = self._labeled_entry(form_frame, "LBH Agenc.:", 2, 10, width=90)
 
-        # Barra de botones CRUD y Excel
         btn_frame = ctk.CTkFrame(self.tab_ops, fg_color="transparent")
-        btn_frame.pack(fill="x", padx=6, pady=(0, 6))
+        btn_frame.pack(fill="x", side="top", padx=4, pady=(0, 4))
 
-        ctk.CTkButton(btn_frame, text="Guardar Nueva", width=125, fg_color="#16A34A", command=self._save_new_op).pack(
-            side="left", padx=4
+        ctk.CTkButton(btn_frame, text="Guardar Nueva", width=120, fg_color="#16A34A", command=self._save_new_op).pack(
+            side="left", padx=3
         )
-        ctk.CTkButton(btn_frame, text="Actualizar Seleccionada", width=165, command=self._update_selected_op).pack(
-            side="left", padx=4
+        ctk.CTkButton(btn_frame, text="Actualizar Seleccionada", width=155, command=self._update_selected_op).pack(
+            side="left", padx=3
         )
         ctk.CTkButton(
-            btn_frame, text="Eliminar", width=95, fg_color="#DC2626", command=self._delete_selected_op
-        ).pack(side="left", padx=4)
+            btn_frame, text="Eliminar", width=90, fg_color="#DC2626", command=self._delete_selected_op
+        ).pack(side="left", padx=3)
         ctk.CTkButton(
-            btn_frame, text="Limpiar Formulario", width=130, fg_color="#64748B", command=self._reset_op_form
-        ).pack(side="left", padx=4)
+            btn_frame, text="Limpiar Formulario", width=125, fg_color="#64748B", command=self._reset_op_form
+        ).pack(side="left", padx=3)
 
         ctk.CTkButton(
-            btn_frame, text="Exportar Vista a Excel", width=165, fg_color="#1B365D", command=self._export_current_view
-        ).pack(side="right", padx=4)
+            btn_frame, text="Exportar Vista a Excel", width=155, fg_color="#1B365D", command=self._export_current_view
+        ).pack(side="right", padx=3)
         ctk.CTkButton(
-            btn_frame, text="Importar Excel Base", width=160, fg_color="#0F766E", command=self._import_excel_dialog
-        ).pack(side="right", padx=4)
+            btn_frame, text="Importar Excel Base", width=150, fg_color="#0F766E", command=self._import_excel_dialog
+        ).pack(side="right", padx=3)
 
-        # Tabla Treeview de 18 columnas (+ ID)
         table_frame = ctk.CTkFrame(self.tab_ops)
-        table_frame.pack(fill="both", expand=True, padx=6, pady=(0, 4))
+        table_frame.pack(fill="both", expand=True, padx=4, pady=(0, 2))
 
         cols = (
             "id",
@@ -306,28 +333,28 @@ class SMCOperacionesApp(ctk.CTk):
             "factura_smc",
             "lbh_agenciamiento",
         )
-        self.ops_tree = ttk.Treeview(table_frame, columns=cols, show="headings", selectmode="browse")
+        self.ops_tree = ttk.Treeview(table_frame, columns=cols, show="headings", selectmode="browse", height=12)
 
         headers_map = {
             "id": ("ID", 45),
-            "fecha": ("FECHA", 90),
-            "hrs_inicio": ("HRS INICIO", 80),
-            "hrs_termino": ("HRS TERMINO", 85),
-            "total_time": ("TOTAL TIME", 80),
-            "nave": ("NAVE", 145),
-            "cliente": ("CLIENTE", 95),
-            "servicio": ("SERVICIO", 130),
-            "terminal": ("TERMINAL", 85),
-            "lancha": ("LANCHA", 110),
-            "valor_usd": ("VALOR USD", 80),
-            "extra_usd": ("EXTRA USD", 80),
-            "total_usd": ("TOTAL USD", 85),
-            "observaciones": ("OBSERVACIONES", 130),
-            "estado": ("ESTADO", 85),
-            "proforma_smc": ("PROFORMA SMC", 165),
-            "oc_cte": ("OC CTE", 85),
-            "factura_smc": ("FACTURA SMC", 95),
-            "lbh_agenciamiento": ("LBH AGENC.", 110),
+            "fecha": ("FECHA", 85),
+            "hrs_inicio": ("HRS INICIO", 78),
+            "hrs_termino": ("HRS TERMINO", 82),
+            "total_time": ("TOTAL TIME", 78),
+            "nave": ("NAVE", 140),
+            "cliente": ("CLIENTE", 90),
+            "servicio": ("SERVICIO", 125),
+            "terminal": ("TERMINAL", 80),
+            "lancha": ("LANCHA", 105),
+            "valor_usd": ("VALOR USD", 78),
+            "extra_usd": ("EXTRA USD", 78),
+            "total_usd": ("TOTAL USD", 82),
+            "observaciones": ("OBSERVACIONES", 125),
+            "estado": ("ESTADO", 80),
+            "proforma_smc": ("PROFORMA SMC", 155),
+            "oc_cte": ("OC CTE", 80),
+            "factura_smc": ("FACTURA SMC", 90),
+            "lbh_agenciamiento": ("LBH AGENC.", 95),
         }
         for col_id, (title, width) in headers_map.items():
             self.ops_tree.heading(col_id, text=title)
@@ -348,9 +375,9 @@ class SMCOperacionesApp(ctk.CTk):
     def _labeled_entry(
         self, parent: ctk.CTkFrame, label: str, row: int, col: int, width: int = 120
     ) -> ctk.CTkEntry:
-        ctk.CTkLabel(parent, text=label).grid(row=row, column=col, padx=4, pady=4, sticky="e")
+        ctk.CTkLabel(parent, text=label).grid(row=row, column=col, padx=3, pady=3, sticky="e")
         entry = ctk.CTkEntry(parent, width=width)
-        entry.grid(row=row, column=col + 1, padx=4, pady=4, sticky="w")
+        entry.grid(row=row, column=col + 1, padx=3, pady=3, sticky="w")
         return entry
 
     def _autofill_tariff(self) -> None:
@@ -581,54 +608,115 @@ class SMCOperacionesApp(ctk.CTk):
     # PESTAÑA 2: EMITIR PROFORMA DE SERVICIOS
     # =========================================================================
     def _build_tab_proforma(self) -> None:
+        # 1. Barra superior de filtros y botón directo de emisión
         top_bar = ctk.CTkFrame(self.tab_proforma)
-        top_bar.pack(fill="x", padx=6, pady=6)
+        top_bar.pack(fill="x", side="top", padx=4, pady=4)
 
-        ctk.CTkLabel(top_bar, text="Cliente:").grid(row=0, column=0, padx=5, pady=6)
+        ctk.CTkLabel(top_bar, text="Cliente:").grid(row=0, column=0, padx=4, pady=5)
         self.prof_cliente = ctk.CTkComboBox(
             top_bar,
-            width=130,
+            width=125,
             values=["LBH"],
             command=lambda _v: self._on_proforma_client_change(),
         )
-        self.prof_cliente.grid(row=0, column=1, padx=5, pady=6)
+        self.prof_cliente.grid(row=0, column=1, padx=4, pady=5)
 
-        ctk.CTkLabel(top_bar, text="Nave:").grid(row=0, column=2, padx=5, pady=6)
-        self.prof_nave = ctk.CTkComboBox(top_bar, width=180, values=[""])
-        self.prof_nave.grid(row=0, column=3, padx=5, pady=6)
+        ctk.CTkLabel(top_bar, text="Nave:").grid(row=0, column=2, padx=4, pady=5)
+        self.prof_nave = ctk.CTkComboBox(
+            top_bar,
+            width=210,
+            values=[""],
+            command=lambda _v: self._search_proforma_ops(),
+        )
+        self.prof_nave.grid(row=0, column=3, padx=4, pady=5)
 
-        ctk.CTkLabel(top_bar, text="Desde:").grid(row=0, column=4, padx=5, pady=6)
-        self.prof_desde = ctk.CTkEntry(top_bar, width=100, placeholder_text="YYYY-MM-DD")
-        self.prof_desde.grid(row=0, column=5, padx=5, pady=6)
+        ctk.CTkLabel(top_bar, text="Desde:").grid(row=0, column=4, padx=4, pady=5)
+        self.prof_desde = ctk.CTkEntry(top_bar, width=95, placeholder_text="YYYY-MM-DD")
+        self.prof_desde.grid(row=0, column=5, padx=4, pady=5)
 
-        ctk.CTkLabel(top_bar, text="Hasta:").grid(row=0, column=6, padx=5, pady=6)
-        self.prof_hasta = ctk.CTkEntry(top_bar, width=100, placeholder_text="YYYY-MM-DD")
-        self.prof_hasta.grid(row=0, column=7, padx=5, pady=6)
+        ctk.CTkLabel(top_bar, text="Hasta:").grid(row=0, column=6, padx=4, pady=5)
+        self.prof_hasta = ctk.CTkEntry(top_bar, width=95, placeholder_text="YYYY-MM-DD")
+        self.prof_hasta.grid(row=0, column=7, padx=4, pady=5)
 
-        ctk.CTkButton(top_bar, text="Buscar Maniobras", width=130, command=self._search_proforma_ops).grid(
-            row=0, column=8, padx=6, pady=6
+        ctk.CTkButton(top_bar, text="Buscar Maniobras", width=125, command=self._search_proforma_ops).grid(
+            row=0, column=8, padx=4, pady=5
         )
         ctk.CTkButton(
-            top_bar, text="Sel. Todas", width=90, fg_color="#475569", command=self._select_all_proforma
-        ).grid(row=0, column=9, padx=4, pady=6)
+            top_bar, text="Sel. Todas", width=85, fg_color="#475569", command=self._select_all_proforma
+        ).grid(row=0, column=9, padx=4, pady=5)
 
-        # Tabla de maniobras seleccionables
+        ctk.CTkButton(
+            top_bar,
+            text="Emitir Proforma (Excel + PDF)",
+            width=195,
+            fg_color="#16A34A",
+            hover_color="#15803D",
+            command=self._emit_proforma,
+        ).grid(row=0, column=10, padx=6, pady=5)
+
+        # 2. Panel inferior fijo (empaquetado con side="bottom" ANTES de la tabla para que nunca se oculte)
+        bottom_panel = ctk.CTkFrame(self.tab_proforma)
+        bottom_panel.pack(fill="x", side="bottom", padx=4, pady=4)
+
+        row_inputs = ctk.CTkFrame(bottom_panel, fg_color="transparent")
+        row_inputs.pack(fill="x", padx=4, pady=(4, 2))
+
+        self.prof_folio = self._labeled_entry(row_inputs, "Folio Proforma:", 0, 0, width=185)
+        self.prof_fecha_em = self._labeled_entry(row_inputs, "Fecha Emisión:", 0, 2, width=100)
+        self.prof_fecha_em.insert(0, date.today().isoformat())
+
+        self.prof_clasif = self._labeled_entry(row_inputs, "Clasificación:", 0, 4, width=65)
+        self.prof_clasif.insert(0, "F/V")
+
+        self.prof_dolar = self._labeled_entry(row_inputs, "Valor Dólar CLP:", 0, 6, width=85)
+        self.prof_dolar.insert(0, "981.08")
+        self.prof_dolar.bind("<KeyRelease>", lambda _e: self._update_proforma_totals_ui())
+
+        self.prof_dcto = self._labeled_entry(row_inputs, "Descuento USD:", 0, 8, width=75)
+        self.prof_dcto.insert(0, "0.00")
+        self.prof_dcto.bind("<KeyRelease>", lambda _e: self._update_proforma_totals_ui())
+
+        self.prof_otros = self._labeled_entry(row_inputs, "Otros USD:", 0, 10, width=75)
+        self.prof_otros.insert(0, "0.00")
+        self.prof_otros.bind("<KeyRelease>", lambda _e: self._update_proforma_totals_ui())
+
+        row_totals = ctk.CTkFrame(bottom_panel, fg_color="transparent")
+        row_totals.pack(fill="x", padx=8, pady=(2, 6))
+
+        self.prof_totals_lbl = ctk.CTkLabel(
+            row_totals,
+            text="Subtotal: $0.00 USD  |  IVA (19%): $0.00 USD  |  TOTAL: $0.00 USD  ($0 CLP)",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color="#1B365D",
+        )
+        self.prof_totals_lbl.pack(side="left", padx=4)
+
+        ctk.CTkButton(
+            row_totals,
+            text="Emitir Proforma (Excel + PDF)",
+            width=220,
+            height=34,
+            fg_color="#1B365D",
+            command=self._emit_proforma,
+        ).pack(side="right", padx=6)
+
+        # 3. Tabla central de maniobras seleccionables
         mid_frame = ctk.CTkFrame(self.tab_proforma)
-        mid_frame.pack(fill="both", expand=True, padx=6, pady=(0, 6))
+        mid_frame.pack(fill="both", expand=True, padx=4, pady=(0, 2))
 
         p_cols = ("sel", "id", "fecha", "horario", "tt", "nave", "servicio", "lancha", "total_usd", "proforma_smc")
-        self.prof_tree = ttk.Treeview(mid_frame, columns=p_cols, show="headings")
+        self.prof_tree = ttk.Treeview(mid_frame, columns=p_cols, show="headings", height=10)
         for col, title, w in [
             ("sel", "SEL", 45),
             ("id", "ID", 45),
-            ("fecha", "FECHA", 95),
-            ("horario", "HORARIO", 150),
+            ("fecha", "FECHA", 90),
+            ("horario", "HORARIO", 145),
             ("tt", "TT", 75),
-            ("nave", "NAVE", 160),
-            ("servicio", "SERVICIO", 160),
-            ("lancha", "LANCHA", 120),
-            ("total_usd", "TOTAL USD", 95),
-            ("proforma_smc", "PROFORMA ACTUAL", 180),
+            ("nave", "NAVE", 155),
+            ("servicio", "SERVICIO", 155),
+            ("lancha", "LANCHA", 115),
+            ("total_usd", "TOTAL USD", 90),
+            ("proforma_smc", "PROFORMA ACTUAL", 175),
         ]:
             self.prof_tree.heading(col, text=title)
             self.prof_tree.column(col, width=w)
@@ -639,55 +727,21 @@ class SMCOperacionesApp(ctk.CTk):
         vsb.pack(side="right", fill="y")
         self.prof_tree.bind("<ButtonRelease-1>", self._toggle_proforma_row)
 
-        # Panel de emisión y totales
-        bottom_panel = ctk.CTkFrame(self.tab_proforma)
-        bottom_panel.pack(fill="x", padx=6, pady=(0, 4))
-
-        self.prof_folio = self._labeled_entry(bottom_panel, "Folio Proforma:", 0, 0, width=210)
-        self.prof_fecha_em = self._labeled_entry(bottom_panel, "Fecha Emisión:", 0, 2, width=110)
-        self.prof_fecha_em.insert(0, date.today().isoformat())
-
-        self.prof_clasif = self._labeled_entry(bottom_panel, "Clasificación:", 0, 4, width=70)
-        self.prof_clasif.insert(0, "M/N")
-
-        self.prof_dolar = self._labeled_entry(bottom_panel, "Valor Dólar CLP:", 0, 6, width=90)
-        self.prof_dolar.insert(0, "981.08")
-        self.prof_dolar.bind("<KeyRelease>", lambda _e: self._update_proforma_totals_ui())
-
-        self.prof_dcto = self._labeled_entry(bottom_panel, "Descuento USD:", 1, 0, width=90)
-        self.prof_dcto.insert(0, "0.00")
-        self.prof_dcto.bind("<KeyRelease>", lambda _e: self._update_proforma_totals_ui())
-
-        self.prof_otros = self._labeled_entry(bottom_panel, "Otros USD:", 1, 2, width=90)
-        self.prof_otros.insert(0, "0.00")
-        self.prof_otros.bind("<KeyRelease>", lambda _e: self._update_proforma_totals_ui())
-
-        self.prof_totals_lbl = ctk.CTkLabel(
-            bottom_panel,
-            text="Subtotal: $0.00 USD  |  IVA (19%): $0.00 USD  |  TOTAL: $0.00 USD  ($0 CLP)",
-            font=ctk.CTkFont(size=13, weight="bold"),
-            text_color="#1B365D",
-        )
-        self.prof_totals_lbl.grid(row=1, column=4, columnspan=5, padx=10, pady=6, sticky="w")
-
-        ctk.CTkButton(
-            bottom_panel,
-            text="Emitir Proforma (Excel + PDF)",
-            width=220,
-            height=36,
-            fg_color="#1B365D",
-            command=self._emit_proforma,
-        ).grid(row=0, column=8, rowspan=2, padx=10, pady=6)
-
     def _on_proforma_client_change(self) -> None:
         codigo = self.prof_cliente.get().strip()
         self.prof_folio.delete(0, "end")
         self.prof_folio.insert(0, f"SMC-PDS-IQQ-{codigo}-V0001")
         ops = self.db.list_operaciones(cliente=codigo)
         naves = sorted({op.nave for op in ops if op.nave})
-        self.prof_nave.configure(values=naves or [""])
+        self.prof_nave.configure(values=naves if naves else [""])
         if naves:
-            self.prof_nave.set(naves[0])
+            if "SHUN XING 17" in naves:
+                self.prof_nave.set("SHUN XING 17")
+            else:
+                self.prof_nave.set(naves[0])
+        else:
+            self.prof_nave.set("")
+        self._search_proforma_ops()
 
     def _search_proforma_ops(self) -> None:
         cliente = self.prof_cliente.get().strip()
@@ -699,9 +753,9 @@ class SMCOperacionesApp(ctk.CTk):
             nave=nave or None,
         )
         self._proforma_ops_map = {op.id: op for op in ops if op.id is not None}
-        self._proforma_selected_ids = {
-            op.id for op in ops if op.id is not None and not op.proforma_smc.strip()
-        }
+        # Selecciona por defecto las pendientes; si todas tienen proforma, las selecciona igual para previsualizar
+        unbilled = {op.id for op in ops if op.id is not None and not op.proforma_smc.strip()}
+        self._proforma_selected_ids = unbilled if unbilled else set(self._proforma_ops_map.keys())
         self._render_proforma_tree()
 
     def _render_proforma_tree(self) -> None:
@@ -841,40 +895,92 @@ class SMCOperacionesApp(ctk.CTk):
     # PESTAÑA 3: EMITIR ORDEN DE COMPRA (OC LANCHAS EXTERNAS)
     # =========================================================================
     def _build_tab_orden_compra(self) -> None:
+        # 1. Barra superior con filtro y botón directo de emisión
         top_bar = ctk.CTkFrame(self.tab_oc)
-        top_bar.pack(fill="x", padx=6, pady=6)
+        top_bar.pack(fill="x", side="top", padx=4, pady=4)
 
-        ctk.CTkLabel(top_bar, text="Lancha Externa:").grid(row=0, column=0, padx=5, pady=6)
-        self.oc_lancha = ctk.CTkComboBox(top_bar, width=160, values=["BUCA LAUREL"])
-        self.oc_lancha.grid(row=0, column=1, padx=5, pady=6)
+        ctk.CTkLabel(top_bar, text="Lancha Externa:").grid(row=0, column=0, padx=5, pady=5)
+        self.oc_lancha = ctk.CTkComboBox(
+            top_bar,
+            width=160,
+            values=["BUCA LAUREL"],
+            command=lambda _v: self._search_oc_ops(),
+        )
+        self.oc_lancha.grid(row=0, column=1, padx=5, pady=5)
 
-        ctk.CTkLabel(top_bar, text="Desde:").grid(row=0, column=2, padx=5, pady=6)
-        self.oc_desde = ctk.CTkEntry(top_bar, width=105, placeholder_text="YYYY-MM-DD")
-        self.oc_desde.grid(row=0, column=3, padx=5, pady=6)
+        ctk.CTkLabel(top_bar, text="Desde:").grid(row=0, column=2, padx=5, pady=5)
+        self.oc_desde = ctk.CTkEntry(top_bar, width=100, placeholder_text="YYYY-MM-DD")
+        self.oc_desde.grid(row=0, column=3, padx=5, pady=5)
 
-        ctk.CTkLabel(top_bar, text="Hasta:").grid(row=0, column=4, padx=5, pady=6)
-        self.oc_hasta = ctk.CTkEntry(top_bar, width=105, placeholder_text="YYYY-MM-DD")
-        self.oc_hasta.grid(row=0, column=5, padx=5, pady=6)
+        ctk.CTkLabel(top_bar, text="Hasta:").grid(row=0, column=4, padx=5, pady=5)
+        self.oc_hasta = ctk.CTkEntry(top_bar, width=100, placeholder_text="YYYY-MM-DD")
+        self.oc_hasta.grid(row=0, column=5, padx=5, pady=5)
 
         ctk.CTkButton(top_bar, text="Buscar Pendientes OC", width=150, command=self._search_oc_ops).grid(
-            row=0, column=6, padx=6, pady=6
+            row=0, column=6, padx=6, pady=5
         )
 
+        ctk.CTkButton(
+            top_bar,
+            text="Emitir Orden de Compra (Excel + PDF)",
+            width=230,
+            fg_color="#0F766E",
+            hover_color="#115E59",
+            command=self._emit_orden_compra,
+        ).grid(row=0, column=7, padx=8, pady=5)
+
+        # 2. Panel inferior fijo (empaquetado con side="bottom" ANTES de la tabla)
+        bottom_panel = ctk.CTkFrame(self.tab_oc)
+        bottom_panel.pack(fill="x", side="bottom", padx=4, pady=4)
+
+        row_inputs = ctk.CTkFrame(bottom_panel, fg_color="transparent")
+        row_inputs.pack(fill="x", padx=4, pady=(4, 2))
+
+        self.oc_folio = self._labeled_entry(row_inputs, "Folio OC:", 0, 0, width=180)
+        self.oc_folio.insert(0, "SMC-OC-IQQ-BL-V001")
+
+        self.oc_fecha_em = self._labeled_entry(row_inputs, "Fecha Emisión:", 0, 2, width=105)
+        self.oc_fecha_em.insert(0, date.today().isoformat())
+
+        self.oc_proveedor = self._labeled_entry(row_inputs, "Proveedor:", 0, 4, width=260)
+        self.oc_proveedor.insert(0, "Servicios Marítimos Bucalemu / Armador Externo")
+
+        row_totals = ctk.CTkFrame(bottom_panel, fg_color="transparent")
+        row_totals.pack(fill="x", padx=8, pady=(2, 6))
+
+        self.oc_totals_lbl = ctk.CTkLabel(
+            row_totals,
+            text="Subtotal OC: $0.00 USD  |  IVA (19%): $0.00 USD  |  TOTAL OC: $0.00 USD",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color="#1B365D",
+        )
+        self.oc_totals_lbl.pack(side="left", padx=4)
+
+        ctk.CTkButton(
+            row_totals,
+            text="Emitir Orden de Compra (Excel + PDF)",
+            width=240,
+            height=34,
+            fg_color="#0F766E",
+            command=self._emit_orden_compra,
+        ).pack(side="right", padx=6)
+
+        # 3. Tabla central de maniobras de lancha externa
         mid_frame = ctk.CTkFrame(self.tab_oc)
-        mid_frame.pack(fill="both", expand=True, padx=6, pady=(0, 6))
+        mid_frame.pack(fill="both", expand=True, padx=4, pady=(0, 2))
 
         o_cols = ("sel", "id", "fecha", "horario", "tt", "nave", "cliente", "servicio", "lancha", "total_usd")
-        self.oc_tree = ttk.Treeview(mid_frame, columns=o_cols, show="headings")
+        self.oc_tree = ttk.Treeview(mid_frame, columns=o_cols, show="headings", height=10)
         for col, title, w in [
             ("sel", "SEL", 45),
             ("id", "ID", 45),
             ("fecha", "FECHA", 95),
-            ("horario", "HORARIO", 150),
+            ("horario", "HORARIO", 145),
             ("tt", "TT", 75),
-            ("nave", "NAVE", 160),
+            ("nave", "NAVE", 155),
             ("cliente", "AGENCIA", 105),
-            ("servicio", "SERVICIO", 160),
-            ("lancha", "LANCHA", 120),
+            ("servicio", "SERVICIO", 155),
+            ("lancha", "LANCHA", 115),
             ("total_usd", "TOTAL USD", 95),
         ]:
             self.oc_tree.heading(col, text=title)
@@ -885,35 +991,6 @@ class SMCOperacionesApp(ctk.CTk):
         self.oc_tree.pack(side="left", fill="both", expand=True)
         vsb.pack(side="right", fill="y")
         self.oc_tree.bind("<ButtonRelease-1>", self._toggle_oc_row)
-
-        bottom_panel = ctk.CTkFrame(self.tab_oc)
-        bottom_panel.pack(fill="x", padx=6, pady=(0, 4))
-
-        self.oc_folio = self._labeled_entry(bottom_panel, "Folio OC:", 0, 0, width=180)
-        self.oc_folio.insert(0, "SMC-OC-IQQ-BL-V001")
-
-        self.oc_fecha_em = self._labeled_entry(bottom_panel, "Fecha Emisión:", 0, 2, width=105)
-        self.oc_fecha_em.insert(0, date.today().isoformat())
-
-        self.oc_proveedor = self._labeled_entry(bottom_panel, "Proveedor:", 0, 4, width=240)
-        self.oc_proveedor.insert(0, "Servicios Marítimos Bucalemu / Armador Externo")
-
-        self.oc_totals_lbl = ctk.CTkLabel(
-            bottom_panel,
-            text="Subtotal OC: $0.00 USD  |  IVA (19%): $0.00 USD  |  TOTAL OC: $0.00 USD",
-            font=ctk.CTkFont(size=13, weight="bold"),
-            text_color="#1B365D",
-        )
-        self.oc_totals_lbl.grid(row=1, column=0, columnspan=6, padx=10, pady=6, sticky="w")
-
-        ctk.CTkButton(
-            bottom_panel,
-            text="Emitir Orden de Compra (Excel + PDF)",
-            width=240,
-            height=36,
-            fg_color="#0F766E",
-            command=self._emit_orden_compra,
-        ).grid(row=0, column=6, rowspan=2, padx=10, pady=6)
 
     def _search_oc_ops(self) -> None:
         lancha = self.oc_lancha.get().strip()
@@ -1015,7 +1092,6 @@ class SMCOperacionesApp(ctk.CTk):
         self.tab_tarifas.grid_columnconfigure(1, weight=1)
         self.tab_tarifas.grid_rowconfigure(0, weight=1)
 
-        # Panel Izquierdo: Matriz Tarifaria
         left = ctk.CTkFrame(self.tab_tarifas)
         left.grid(row=0, column=0, sticky="nsew", padx=(4, 6), pady=4)
 
@@ -1049,7 +1125,6 @@ class SMCOperacionesApp(ctk.CTk):
         self.tar_tree.pack(fill="both", expand=True, padx=8, pady=(4, 8))
         self.tar_tree.bind("<<TreeviewSelect>>", self._on_tariff_select)
 
-        # Panel Derecho: Resumen de Operaciones
         right = ctk.CTkFrame(self.tab_tarifas)
         right.grid(row=0, column=1, sticky="nsew", padx=(6, 4), pady=4)
 
@@ -1138,24 +1213,25 @@ class SMCOperacionesApp(ctk.CTk):
         self.flt_cliente.configure(values=["TODOS", *clientes])
         self.op_cliente.configure(values=clientes)
         if clientes and self.op_cliente.get() not in clientes:
-            self.op_cliente.set(clientes[0])
+            self.op_cliente.set("LBH" if "LBH" in clientes else clientes[0])
 
         self.flt_lancha.configure(values=["TODAS", *lanchas_all])
         self.op_lancha.configure(values=lanchas_all)
 
         self.prof_cliente.configure(values=clientes)
         if clientes and self.prof_cliente.get() not in clientes:
-            self.prof_cliente.set(clientes[0])
-            self._on_proforma_client_change()
+            self.prof_cliente.set("LBH" if "LBH" in clientes else clientes[0])
+        self._on_proforma_client_change()
 
         if lanchas_ext:
             self.oc_lancha.configure(values=lanchas_ext)
             if self.oc_lancha.get() not in lanchas_ext:
                 self.oc_lancha.set(lanchas_ext[0])
+        self._search_oc_ops()
 
         self.tar_cliente.configure(values=clientes)
         if clientes and self.tar_cliente.get() not in clientes:
-            self.tar_cliente.set(clientes[0])
+            self.tar_cliente.set("LBH" if "LBH" in clientes else clientes[0])
 
         self._load_operations_table()
         self._load_tariffs_table()
@@ -1170,4 +1246,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
