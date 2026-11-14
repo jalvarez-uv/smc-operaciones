@@ -30,11 +30,12 @@ uses: actions/checkout@v4
 
   - name: 5. Compilar ejecutable .exe con PyInstaller
     run: |
-      pyinstaller --noconfirm --onedir --windowed --name "SMC_Operaciones" --collect-all customtkinter src/ui/app.py
+      pyinstaller --noconfirm --onedir --windowed --name "SMC_Operaciones" --collect-all customtkinter --collect-all reportlab main.py
 
-  - name: 6. Copiar carpeta docs y plantillas al paquete final
+  - name: 6. Copiar carpeta docs y data al paquete final
     run: |
       if (Test-Path docs) { Copy-Item -Path docs -Destination dist/SMC_Operaciones/docs -Recurse }
+      if (Test-Path data) { Copy-Item -Path data -Destination dist/SMC_Operaciones/data -Recurse }
 
   - name: 7. Subir ejecutable Windows listo para descargar
     uses: actions/upload-artifact@v4

@@ -60,13 +60,13 @@
 
 **Purpose**: Construcción de la aplicación de escritorio moderna con CustomTkinter, sus 4 pestañas de trabajo y el script de inicio listo para empaquetado portable.
 
-- [ ] T023 [P] [US1] Implementar ventana principal `SMCOperacionesApp` con tema visual moderno, encabezado institucional con logo/nombre de SMC y contenedor de 4 pestañas (`CTkTabview`) en `src/ui/app.py`
-- [ ] T024 [US1] Implementar Pestaña 1 "Control de Operaciones" en `src/ui/app.py`: formulario con cálculo de `TOTAL TIME` y autocompletado de tarifa en vivo, barra de filtros (`Fecha`, `Nave`, `Cliente`, `Lancha`, `Estado`), tabla `Treeview` de 18 columnas y botones de acción (Guardar, Actualizar, Eliminar, Importar Excel Base, Exportar Vista)
-- [ ] T025 [US2] Implementar Pestaña 2 "Emitir Proforma de Servicios" en `src/ui/app.py`: selectores de Cliente y Nave, grilla de maniobras pendientes, sugerencia de folio `SMC-PDS-IQQ-[CLIENTE]-V[XXXX]`, selector de Tipo de Cambio Dólar, panel de totales en vivo (`Subtotal`, `IVA 19%`, `Total USD`, `Total CLP ref.`), alerta de doble cobro y botón de emisión dual `.xlsx` + `.pdf`
-- [ ] T026 [US3] Implementar Pestaña 3 "Emitir Orden de Compra (OC Lanchas)" in `src/ui/app.py`: selector de lanchas externas (`BUCA LAUREL`), filtrado de maniobras por fecha/nave, verificación de costo unitario, panel de totales y botón de emisión dual `.xlsx` + `.pdf`
-- [ ] T027 [US4] Implementar Pestaña 4 "Tarifarios y Resumen" in `src/ui/app.py`: administración CRUD de tarifas por `(Cliente, Servicio)` y panel de métricas con resumen de servicios e ingresos por Cliente, Tipo de Servicio y Lancha (`DOÑA RENATA` vs `BUCA LAUREL`)
-- [ ] T028 Crear punto de entrada de la aplicación `main.py` en la raíz del repositorio para inicializar base de datos/seed y lanzar `SMCOperacionesApp`, compatible con ejecución directa y empaquetado PyInstaller
-- [ ] T029 [P] Configurar empaquetado portable de Windows en `.github/workflows/build-windows.yml` asegurando inclusión de recursos estáticos y dependencias de CustomTkinter/ReportLab
+- [x] T023 [P] [US1] Implementar ventana principal `SMCOperacionesApp` con tema visual moderno, encabezado institucional con logo/nombre de SMC y contenedor de 4 pestañas (`CTkTabview`) en `src/ui/app.py`
+- [x] T024 [US1] Implementar Pestaña 1 "Control de Operaciones" en `src/ui/app.py`: formulario con cálculo de `TOTAL TIME` y autocompletado de tarifa en vivo, barra de filtros (`Fecha`, `Nave`, `Cliente`, `Lancha`, `Estado`), tabla `Treeview` de 18 columnas y botones de acción (Guardar, Actualizar, Eliminar, Importar Excel Base, Exportar Vista)
+- [x] T025 [US2] Implementar Pestaña 2 "Emitir Proforma de Servicios" en `src/ui/app.py`: selectores de Cliente y Nave, grilla de maniobras pendientes, sugerencia de folio `SMC-PDS-IQQ-[CLIENTE]-V[XXXX]`, selector de Tipo de Cambio Dólar, panel de totales en vivo (`Subtotal`, `IVA 19%`, `Total USD`, `Total CLP ref.`), alerta de doble cobro y botón de emisión dual `.xlsx` + `.pdf`
+- [x] T026 [US3] Implementar Pestaña 3 "Emitir Orden de Compra (OC Lanchas)" in `src/ui/app.py`: selector de lanchas externas (`BUCA LAUREL`), filtrado de maniobras por fecha/nave, verificación de costo unitario, panel de totales y botón de emisión dual `.xlsx` + `.pdf`
+- [x] T027 [US4] Implementar Pestaña 4 "Tarifarios y Resumen" in `src/ui/app.py`: administración CRUD de tarifas por `(Cliente, Servicio)` y panel de métricas con resumen de servicios e ingresos por Cliente, Tipo de Servicio y Lancha (`DOÑA RENATA` vs `BUCA LAUREL`)
+- [x] T028 Crear punto de entrada de la aplicación `main.py` en la raíz del repositorio para inicializar base de datos/seed y lanzar `SMCOperacionesApp`, compatible con ejecución directa y empaquetado PyInstaller
+- [x] T029 [P] Configurar empaquetado portable de Windows en `.github/workflows/build-windows.yml` asegurando inclusión de recursos estáticos y dependencias de CustomTkinter/ReportLab
 
 **Checkpoint**: Aplicación GUI completamente integrada y ejecutable localmente con `python main.py` o `python -m src.ui.app`.
 
@@ -76,9 +76,9 @@
 
 **Purpose**: Validación final cruzada, revisión de criterios de aceptación y documentación operativa.
 
-- [ ] T030 Ejecutar suite completa `pytest -v` asegurando 100% de pruebas aprobadas en entornos headless
-- [ ] T031 Ejecutar validación end-to-end según `specs/001-operaciones-proformas-oc/quickstart.md`: importar planilla real, generar Proforma testigo de *SHUN XING 17* y emitir Orden de Compra de *BUCA LAUREL*
-- [ ] T032 [P] Actualizar documentación final en `README.md` y `docs/SRS.md` con instrucciones de uso de las 4 pestañas y generación documental
+- [x] T030 Ejecutar suite completa `pytest -v` asegurando 100% de pruebas aprobadas en entornos headless
+- [x] T031 Ejecutar validación end-to-end según `specs/001-operaciones-proformas-oc/quickstart.md`: importar planilla real, generar Proforma testigo de *SHUN XING 17* y emitir Orden de Compra de *BUCA LAUREL*
+- [x] T032 [P] Actualizar documentación final en `README.md` y `docs/SRS.md` con instrucciones de uso de las 4 pestañas y generación documental
 
 ---
 

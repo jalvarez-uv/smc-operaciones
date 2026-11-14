@@ -68,7 +68,7 @@ cd smc-operaciones
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python -m src.ui.app
+python main.py
 ```
 
 ### En Windows (Desde Código Fuente):
@@ -78,7 +78,7 @@ cd smc-operaciones
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-python -m src.ui.app
+python main.py
 ```
 
 ### En Windows (Ejecutable Portable `.exe`):
