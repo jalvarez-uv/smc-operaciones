@@ -14,9 +14,14 @@ from src.core.calculator import (
 )
 from src.core.models import (
     Cliente,
+    DuplicateOrdenCompraError,
+    DuplicateProformaError,
     Lancha,
     Operacion,
+    OrdenCompraSummary,
+    ProformaSummary,
     TarifaCliente,
+    ValidationError,
 )
 
 SEED_CLIENTES: list[tuple[str, str, str, str, str]] = [
@@ -684,4 +689,162 @@ class DatabaseManager:
             "por_servicio": por_servicio,
             "por_lancha": por_lancha,
         }
+
+    def register_proforma(
+        self,
+        proforma: ProformaSummary,
+        operation_ids: list[int],
+        force_reissue: bool = False,
+    ) -> None:
+        """Registra una Proforma y actualiza proforma_smc y estado='AGENCIA' en las maniobras.
+
+        Lanza DuplicateProformaError si alguna maniobra ya posee proforma_smc asignado
+        y force_reissue es False (CP-09).
+        """
+        if not operation_ids:
+            raise ValidationError("Debe seleccionar al menos una maniobra para emitir la Proforma.")
+
+        folio_clean = proforma.folio.strip()
+        if not folio_clean:
+            raise ValidationError("El folio de la Proforma no puede estar vacío.")
+
+        placeholders = ",".join("?" for _ in operation_ids)
+        with self._connection() as conn:
+            rows = conn.execute(
+                f"SELECT id, proforma_smc FROM operaciones WHERE id IN ({placeholders})",
+                operation_ids,
+            ).fetchall()
+
+            if len(rows) != len(set(operation_ids)):
+                raise ValidationError("Una o más maniobras seleccionadas no existen en la base de datos.")
+
+            if not force_reissue:
+                conflicts = {
+                    int(r["id"]): str(r["proforma_smc"]).strip()
+                    for r in rows
+                    if r["proforma_smc"] and str(r["proforma_smc"]).strip()
+                }
+                if conflicts:
+                    folios_str = ", ".join(sorted(set(conflicts.values())))
+                    raise DuplicateProformaError(
+                        f"Las maniobras seleccionadas ya poseen Proforma asignada ({folios_str}).",
+                        conflicting_folios=conflicts,
+                    )
+
+                existing_folio = conn.execute(
+                    "SELECT folio FROM proformas WHERE folio = ?",
+                    (folio_clean,),
+                ).fetchone()
+                if existing_folio:
+                    raise DuplicateProformaError(
+                        f"El folio de Proforma '{folio_clean}' ya se encuentra registrado."
+                    )
+
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO proformas (
+                    folio, fecha_emision, cliente, nave_nombre, nave_clasificacion,
+                    valor_dolar_clp, descuento_usd, subtotal_usd, iva_usd, otros_usd,
+                    total_usd, observaciones
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    folio_clean,
+                    proforma.fecha_emision.strip(),
+                    proforma.cliente.codigo_agencia.strip().upper(),
+                    proforma.nave_nombre.strip().upper(),
+                    proforma.nave_clasificacion.strip(),
+                    float(proforma.valor_dolar_clp),
+                    float(proforma.descuento_usd),
+                    float(proforma.subtotal_usd),
+                    float(proforma.iva_usd),
+                    float(proforma.otros_usd),
+                    float(proforma.total_usd),
+                    proforma.observaciones.strip(),
+                ),
+            )
+
+            conn.execute(
+                f"""
+                UPDATE operaciones
+                SET proforma_smc = ?,
+                    estado = CASE WHEN UPPER(estado) = 'FACTURA' THEN 'FACTURA' ELSE 'AGENCIA' END
+                WHERE id IN ({placeholders})
+                """,
+                [folio_clean, *operation_ids],
+            )
+
+    def register_orden_compra(
+        self,
+        oc: OrdenCompraSummary,
+        operation_ids: list[int],
+        force_reissue: bool = False,
+    ) -> None:
+        """Registra una Orden de Compra para lancha externa y marca oc_proveedor_folio."""
+        if not operation_ids:
+            raise ValidationError("Debe seleccionar al menos una maniobra para emitir la Orden de Compra.")
+
+        folio_clean = oc.folio_oc.strip()
+        if not folio_clean:
+            raise ValidationError("El folio de la Orden de Compra no puede estar vacío.")
+
+        placeholders = ",".join("?" for _ in operation_ids)
+        with self._connection() as conn:
+            rows = conn.execute(
+                f"""
+                SELECT o.id, o.lancha, o.oc_proveedor_folio, l.es_propia
+                FROM operaciones o
+                LEFT JOIN lanchas l ON UPPER(l.nombre) = UPPER(o.lancha)
+                WHERE o.id IN ({placeholders})
+                """,
+                operation_ids,
+            ).fetchall()
+
+            if len(rows) != len(set(operation_ids)):
+                raise ValidationError("Una o más maniobras seleccionadas no existen en la base de datos.")
+
+            for r in rows:
+                if r["es_propia"] == 1:
+                    raise ValidationError(
+                        f"La maniobra ID {r['id']} fue ejecutada por lancha propia ({r['lancha']}) "
+                        "y no corresponde a una Orden de Compra a proveedor externo."
+                    )
+
+            if not force_reissue:
+                conflicts = {
+                    int(r["id"]): str(r["oc_proveedor_folio"]).strip()
+                    for r in rows
+                    if r["oc_proveedor_folio"] and str(r["oc_proveedor_folio"]).strip()
+                }
+                if conflicts:
+                    folios_str = ", ".join(sorted(set(conflicts.values())))
+                    raise DuplicateOrdenCompraError(
+                        f"Las maniobras seleccionadas ya poseen Orden de Compra asignada ({folios_str}).",
+                        conflicting_folios=conflicts,
+                    )
+
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO ordenes_compra (
+                    folio_oc, fecha_emision, proveedor_nombre, lancha_nombre,
+                    subtotal_usd, iva_usd, total_usd, observaciones
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    folio_clean,
+                    oc.fecha_emision.strip(),
+                    oc.proveedor_nombre.strip(),
+                    oc.lancha_nombre.strip().upper(),
+                    float(oc.subtotal_usd),
+                    float(oc.iva_usd),
+                    float(oc.total_usd),
+                    oc.observaciones.strip(),
+                ),
+            )
+
+            conn.execute(
+                f"UPDATE operaciones SET oc_proveedor_folio = ? WHERE id IN ({placeholders})",
+                [folio_clean, *operation_ids],
+            )
+
 

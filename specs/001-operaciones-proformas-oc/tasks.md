@@ -28,16 +28,16 @@
 
 **Purpose**: Importación íntegra de `Control de Operaciones Iquique.xlsx`, generación de Proformas y Órdenes de Compra en `.xlsx` con fórmulas vivas, y validación de integración contra casos reales.
 
-- [ ] T009 [US1] Implementar importador `import_operations_from_excel` en `src/core/excel_service.py` procesando la hoja `CONTROL OPES`, mapeando las 18 columnas estándar e ignorando filas vacías con fórmulas en cero al final de la planilla
-- [ ] T010 [P] [US1] Implementar exportador `export_operations_to_excel` en `src/core/excel_service.py` para generar libros `.xlsx` con el membrete oficial y las 18 columnas estándar
-- [ ] T011 [US2] Implementar generador de Proforma en Excel `generate_proforma_excel` en `src/core/excel_service.py` replicando el diseño oficial de SMC (encabezado Cliente/Nave, tabla de maniobras sin filas de otras naves, y bloque de condiciones con Valor Dólar, Subtotal, IVA 19% y Total)
-- [ ] T012 [US3] Implementar generador de Orden de Compra en Excel `generate_orden_compra_excel` en `src/core/excel_service.py` para proveedores de lanchas externas (`BUCA LAUREL`) con detalle de maniobras y tarifas de costo
-- [ ] T013 [US2] Implementar método transaccional `register_proforma` en `src/core/database.py` que valide la ausencia de proforma previa en las maniobras (lanzando `DuplicateProformaError` si existen) y actualice `proforma_smc` y `estado = 'AGENCIA'`
-- [ ] T014 [US3] Implementar método `register_orden_compra` en `src/core/database.py` que filtre maniobras de lanchas externas y registre el folio de compra `oc_proveedor_folio`
-- [ ] T015 [US2] Implementar prueba de aceptación CP-06 en `tests/test_excel_import_export.py` generando la Proforma real para *SHUN XING 17* (29/10/2026, 5 maniobras, Subtotal $2030.00 USD, IVA $385.70 USD, Total $2415.70 USD) y verificando celdas exactas del archivo `.xlsx`
-- [ ] T016 [US3] Implementar prueba de aceptación CP-07 en `tests/test_excel_import_export.py` generando la Orden de Compra para la lancha externa *BUCA LAUREL* (21/10/2026, 6 maniobras de *RONG HENG 68* y *HUA YING 66*) y verificando exclusión de maniobras de *DOÑA RENATA*
-- [ ] T017 [US1] Implementar prueba de integración CP-08 en `tests/test_excel_import_export.py` verificando la importación de exactamente las 476 operaciones válidas del archivo base `data/Control de Operaciones Iquique.xlsx`
-- [ ] T018 [US2] Implementar prueba de integración CP-09 en `tests/test_excel_import_export.py` validando la prevención de doble facturación al intentar reasignar proforma sobre operaciones ya liquidadas
+- [x] T009 [US1] Implementar importador `import_operations_from_excel` en `src/core/excel_service.py` procesando la hoja `CONTROL OPES`, mapeando las 18 columnas estándar e ignorando filas vacías con fórmulas en cero al final de la planilla
+- [x] T010 [P] [US1] Implementar exportador `export_operations_to_excel` en `src/core/excel_service.py` para generar libros `.xlsx` con el membrete oficial y las 18 columnas estándar
+- [x] T011 [US2] Implementar generador de Proforma en Excel `generate_proforma_excel` en `src/core/excel_service.py` replicando el diseño oficial de SMC (encabezado Cliente/Nave, tabla de maniobras sin filas de otras naves, y bloque de condiciones con Valor Dólar, Subtotal, IVA 19% y Total)
+- [x] T012 [US3] Implementar generador de Orden de Compra en Excel `generate_orden_compra_excel` en `src/core/excel_service.py` para proveedores de lanchas externas (`BUCA LAUREL`) con detalle de maniobras y tarifas de costo
+- [x] T013 [US2] Implementar método transaccional `register_proforma` en `src/core/database.py` que valide la ausencia de proforma previa en las maniobras (lanzando `DuplicateProformaError` si existen) y actualice `proforma_smc` y `estado = 'AGENCIA'`
+- [x] T014 [US3] Implementar método `register_orden_compra` en `src/core/database.py` que filtre maniobras de lanchas externas y registre el folio de compra `oc_proveedor_folio`
+- [x] T015 [US2] Implementar prueba de aceptación CP-06 en `tests/test_excel_import_export.py` generando la Proforma real para *SHUN XING 17* (29/10/2026, 5 maniobras, Subtotal $2030.00 USD, IVA $385.70 USD, Total $2415.70 USD) y verificando celdas exactas del archivo `.xlsx`
+- [x] T016 [US3] Implementar prueba de aceptación CP-07 en `tests/test_excel_import_export.py` generando la Orden de Compra para la lancha externa *BUCA LAUREL* (21/10/2026, 6 maniobras de *RONG HENG 68* y *HUA YING 66*) y verificando exclusión de maniobras de *DOÑA RENATA*
+- [x] T017 [US1] Implementar prueba de integración CP-08 en `tests/test_excel_import_export.py` verificando la importación de exactamente las 476 operaciones válidas del archivo base `data/Control de Operaciones Iquique.xlsx`
+- [x] T018 [US2] Implementar prueba de integración CP-09 en `tests/test_excel_import_export.py` validando la prevención de doble facturación al intentar reasignar proforma sobre operaciones ya liquidadas
 
 **Checkpoint**: Servicio Excel y pruebas de integración CP-06 a CP-09 pasando en verde con `pytest -v tests/test_excel_import_export.py`.
 
@@ -47,10 +47,10 @@
 
 **Purpose**: Generación de documentos corporativos en formato `.pdf` oficiales para Proformas de Servicio y Órdenes de Compra a proveedores de lanchas.
 
-- [ ] T019 [P] [US2] Configurar estilos tipográficos corporativos, paleta de colores SMC (azul marino `#1B365D`, gris claro `#F2F4F8`) y plantilla base `SimpleDocTemplate` en `src/core/pdf_service.py`
-- [ ] T020 [US2] Implementar función `generate_proforma_pdf` en `src/core/pdf_service.py` replicando la diagramación oficial de Proforma SMC: membrete institucional con RUT `77.000.970-7`, cajas de datos de Cliente y Nave, tabla de maniobras con glosa `DD/MM/YYYY HH:MM:SS a HH:MM:SS TT: H:MM:SS`, cuadro de condiciones con Valor Dólar y desglose de Subtotal, IVA 19% y Total USD
-- [ ] T021 [US3] Implementar función `generate_orden_compra_pdf` en `src/core/pdf_service.py` generando la Orden de Compra oficial dirigida al proveedor de la lancha externa (`BUCA LAUREL`), con detalle de naves atendidas, tarifas de costo acordadas y totales a pagar
-- [ ] T022 [US2] Implementar pruebas automatizadas de generación de PDF en `tests/test_excel_import_export.py` verificando creación física de archivos `.pdf`, cabecera binaria `%PDF-`, integridad de contenido y tiempo de compilación menor a 3 segundos
+- [x] T019 [P] [US2] Configurar estilos tipográficos corporativos, paleta de colores SMC (azul marino `#1B365D`, gris claro `#F2F4F8`) y plantilla base `SimpleDocTemplate` en `src/core/pdf_service.py`
+- [x] T020 [US2] Implementar función `generate_proforma_pdf` en `src/core/pdf_service.py` replicando la diagramación oficial de Proforma SMC: membrete institucional con RUT `77.000.970-7`, cajas de datos de Cliente y Nave, tabla de maniobras con glosa `DD/MM/YYYY HH:MM:SS a HH:MM:SS TT: H:MM:SS`, cuadro de condiciones con Valor Dólar y desglose de Subtotal, IVA 19% y Total USD
+- [x] T021 [US3] Implementar función `generate_orden_compra_pdf` en `src/core/pdf_service.py` generando la Orden de Compra oficial dirigida al proveedor de la lancha externa (`BUCA LAUREL`), con detalle de naves atendidas, tarifas de costo acordadas y totales a pagar
+- [x] T022 [US2] Implementar pruebas automatizadas de generación de PDF en `tests/test_excel_import_export.py` verificando creación física de archivos `.pdf`, cabecera binaria `%PDF-`, integridad de contenido y tiempo de compilación menor a 3 segundos
 
 **Checkpoint**: Emisión dual (`.xlsx` y `.pdf`) de Proformas y Órdenes de Compra 100% operativa y verificada.
 
