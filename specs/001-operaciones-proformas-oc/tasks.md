@@ -11,14 +11,14 @@
 
 **Purpose**: Inicialización del proyecto, modelos de dominio, motor de cálculo con cruce de medianoche, esquema SQLite con precarga de tarifarios reales y pruebas unitarias aisladas.
 
-- [ ] T001 Inicializar paquetes del proyecto y exportaciones base en `src/__init__.py`, `src/core/__init__.py`, `src/ui/__init__.py` y `tests/__init__.py`
-- [ ] T002 [P] Implementar modelos de datos y excepciones de negocio (`Operacion` con 18 columnas estándar, `Cliente`, `TarifaCliente`, `Lancha`, `ProformaSummary`, `OrdenCompraSummary`, `DuplicateProformaError`) en `src/core/models.py`
-- [ ] T003 [P] Implementar funciones puras de cálculo de duración (`calculate_total_time` con soporte de cruce de medianoche $+24\text{h}$), recargos (`calculate_operation_total_usd`), totales de Proforma (`calculate_proforma_totals` con IVA $19\%$) y glosa oficial en `src/core/calculator.py`
-- [ ] T004 [P] Implementar suite de pruebas unitarias en `tests/test_calculator.py` validando CP-01 (duración diurna), CP-02 (cruce de medianoche sin tiempos negativos), CP-03 (recargo EXTRA USD) y fórmulas de IVA (19%) y totales en USD
-- [ ] T005 Implementar inicialización de base de datos SQLite con claves foráneas, índices (`fecha`, `cliente`, `nave`, `lancha`, `estado`) y DDL de tablas (`clientes`, `tarifas_cliente`, `proveedores_lancha`, `lanchas`, `operaciones`, `proformas`, `ordenes_compra`) en `src/core/database.py`
-- [ ] T006 Implementar semilla idempotente (`seed_initial_data`) en `src/core/database.py` precargando los 5 clientes reales (`LBH`, `CPT BOATS`, `IAN TAYLOR`, `BUCALEMU`, `LORENA IQQ`), sus 25 tarifas en USD y las lanchas `DOÑA RENATA` (propia) y `BUCA LAUREL` (externa con costo base $200.00 USD)
-- [ ] T007 Implementar operaciones CRUD, filtros combinados (`fecha`, `nave`, `cliente`, `lancha`, `estado`) y consultas de inserción masiva en `src/core/database.py`
-- [ ] T008 Implementar pruebas unitarias en `tests/test_calculator.py` validando CP-04 (autocompletado tarifa LBH Recepción $650 USD) y CP-05 (tarifa CPT BOATS Recepción $350 USD) contra el catálogo de tarifas
+- [x] T001 Inicializar paquetes del proyecto y exportaciones base en `src/__init__.py`, `src/core/__init__.py`, `src/ui/__init__.py` y `tests/__init__.py`
+- [x] T002 [P] Implementar modelos de datos y excepciones de negocio (`Operacion` con 18 columnas estándar, `Cliente`, `TarifaCliente`, `Lancha`, `ProformaSummary`, `OrdenCompraSummary`, `DuplicateProformaError`) en `src/core/models.py`
+- [x] T003 [P] Implementar funciones puras de cálculo de duración (`calculate_total_time` con soporte de cruce de medianoche $+24\text{h}$), recargos (`calculate_operation_total_usd`), totales de Proforma (`calculate_proforma_totals` con IVA $19\%$) y glosa oficial en `src/core/calculator.py`
+- [x] T004 [P] Implementar suite de pruebas unitarias en `tests/test_calculator.py` validando CP-01 (duración diurna), CP-02 (cruce de medianoche sin tiempos negativos), CP-03 (recargo EXTRA USD) y fórmulas de IVA (19%) y totales en USD
+- [x] T005 Implementar inicialización de base de datos SQLite con claves foráneas, índices (`fecha`, `cliente`, `nave`, `lancha`, `estado`) y DDL de tablas (`clientes`, `tarifas_cliente`, `proveedores_lancha`, `lanchas`, `operaciones`, `proformas`, `ordenes_compra`) en `src/core/database.py`
+- [x] T006 Implementar semilla idempotente (`seed_initial_data`) en `src/core/database.py` precargando los 5 clientes reales (`LBH`, `CPT BOATS`, `IAN TAYLOR`, `BUCALEMU`, `LORENA IQQ`), sus 25 tarifas en USD y las lanchas `DOÑA RENATA` (propia) y `BUCA LAUREL` (externa con costo base $200.00 USD)
+- [x] T007 Implementar operaciones CRUD, filtros combinados (`fecha`, `nave`, `cliente`, `lancha`, `estado`) y consultas de inserción masiva en `src/core/database.py`
+- [x] T008 Implementar pruebas unitarias en `tests/test_calculator.py` validando CP-04 (autocompletado tarifa LBH Recepción $650 USD) y CP-05 (tarifa CPT BOATS Recepción $350 USD) contra el catálogo de tarifas
 
 **Checkpoint**: Motor core (`models.py`, `calculator.py`, `database.py`) y pruebas unitarias CP-01 a CP-05 operativas y aprobadas al 100% con `pytest -v`.
 
